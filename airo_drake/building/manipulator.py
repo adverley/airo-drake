@@ -16,8 +16,10 @@ def add_manipulator_from_urdf(
     robot_diagram_builder: RobotDiagramBuilder,
     arm_urdf_path: str,
     gripper_urdf_path: str,
-    arm_transform: HomogeneousMatrixType | None = None,
-    gripper_transform: HomogeneousMatrixType | None = None,
+    arm_parent_name="world",
+    X_ArmParent_ArmBase: HomogeneousMatrixType | None = None,
+    gripper_parent_name: str = "tool0",
+    X_GripperParent_GripperBase: HomogeneousMatrixType | None = None,
     static_gripper: bool = False,
 ) -> tuple[ModelInstanceIndex, ModelInstanceIndex]:
     """Add a manipulator (a robot arm with a gripper) to the robot diagram builder by specifying URDF paths.
@@ -27,10 +29,9 @@ def add_manipulator_from_urdf(
             robot_diagram_builder (RobotDiagramBuilder): The robot diagram builder to which the manipulator will be added.
             arm_urdf_path (str): The file path to the URDF of the robot arm.
             gripper_urdf_path (str): The file path to the URDF of the gripper.
-            arm_transform (HomogeneousMatrixType | None, optional): The transform of the robot arm. Defaults to None.
-            gripper_transform (HomogeneousMatrixType | None, optional): The transform of the gripper. Defaults to None.
-            static_gripper (bool, optional): If True, will fix all gripper joints to their default.
-                Useful when you don't want the gripper DoFs in the plant. Defaults to False.
+            arm_transform: The transform of the robot arm, if None, we use supply a robot-specific default.
+            gripper_transform: The transform of the gripper, if None, we supply a default for the robot-gripper pair.
+            static_gripper: If True, will fix all gripper joints to their default. Useful when you don't want the gripper DoFs in the plant.
 
         Returns:
             tuple[ModelInstanceIndex, ModelInstanceIndex]: The indices of the robot arm and gripper in the plant.
@@ -59,21 +60,21 @@ def add_manipulator_from_urdf(
     arm_tool_frame = plant.GetFrameByName("tool0", arm_index)
     gripper_frame = plant.GetFrameByName("base_link", gripper_index)
 
-    if arm_transform is None:
+    if X_ArmParent_ArmBase is None:
         if arm_name.startswith("ur"):
             arm_rigid_transform = X_URBASE_ROSBASE
         else:
             arm_rigid_transform = RigidTransform()
     else:
-        arm_rigid_transform = RigidTransform(arm_transform)
+        arm_rigid_transform = RigidTransform(X_ArmParent_ArmBase)
 
-    if gripper_transform is None:
+    if X_GripperParent_GripperBase is None:
         if arm_name.startswith("ur") and gripper_name.startswith("robotiq"):
             gripper_rigid_transform = X_URTOOL0_ROBOTIQ
         else:
             gripper_rigid_transform = RigidTransform()
     else:
-        gripper_rigid_transform = RigidTransform(gripper_transform)
+        gripper_rigid_transform = RigidTransform(X_GripperParent_GripperBase)
 
     plant.WeldFrames(world_frame, arm_frame, arm_rigid_transform)
     plant.WeldFrames(arm_tool_frame, gripper_frame, gripper_rigid_transform)
@@ -85,8 +86,10 @@ def add_manipulator(
     robot_diagram_builder: RobotDiagramBuilder,
     arm_name: str,
     gripper_name: str,
-    arm_transform: HomogeneousMatrixType | None = None,
-    gripper_transform: HomogeneousMatrixType | None = None,
+    arm_parent_name="world",
+    X_ArmParent_ArmBase: HomogeneousMatrixType | None = None,
+    gripper_parent_name: str = "tool0",
+    X_GripperParent_GripperBase: HomogeneousMatrixType | None = None,
     static_gripper: bool = False,
 ) -> tuple[ModelInstanceIndex, ModelInstanceIndex]:
     """Add a manipulator (a robot arm with a gripper) to the robot diagram builder.
@@ -110,5 +113,12 @@ def add_manipulator(
     gripper_urdf_path = airo_models.get_urdf_path(gripper_name)
 
     return add_manipulator_from_urdf(
-        robot_diagram_builder, arm_urdf_path, gripper_urdf_path, arm_transform, gripper_transform, static_gripper
+        robot_diagram_builder,
+        arm_urdf_path,
+        gripper_urdf_path,
+        arm_parent_name,
+        X_ArmParent_ArmBase,
+        gripper_parent_name,
+        X_GripperParent_GripperBase,
+        static_gripper,
     )
