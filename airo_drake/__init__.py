@@ -10,7 +10,12 @@
 # isort: skip_file
 from airo_drake.building.finish import finish_build
 from airo_drake.building.floor import add_floor
-from airo_drake.building.manipulator import X_URBASE_ROSBASE, X_URTOOL0_ROBOTIQ, add_manipulator
+from airo_drake.building.manipulator import (
+    X_URBASE_ROSBASE,
+    X_URTOOL0_ROBOTIQ,
+    add_manipulator,
+    add_manipulator_from_urdf,
+)
 from airo_drake.building.meshcat import add_meshcat
 from airo_drake.building.wall import add_wall
 from airo_drake.path.analysis import (
@@ -48,6 +53,7 @@ __all__ = [
     "add_floor",
     "add_wall",
     "add_manipulator",
+    "add_manipulator_from_urdf",
     "X_URBASE_ROSBASE",
     "X_URTOOL0_ROBOTIQ",
     "add_meshcat",
